@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+  namespace: wordpress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+        - name: wordpress
+          image: wordpress:6.6-apache
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: mycluster.mysql-operator.svc.cluster.local
+            - name: WORDPRESS_DB_USER
+              value: aayushman
+            - name: WORDPRESS_DB_PASSWORD
+              value: aayu2004
+            - name: WORDPRESS_DB_NAME
+              value: wordpress
+          volumeMounts:
+            - name: wordpress-storage
+              mountPath: /var/www/html
+      restartPolicy: Always
+      volumes:
+        - name: wordpress-storage
+          persistentVolumeClaim:
+            claimName: wordpress-pvc
