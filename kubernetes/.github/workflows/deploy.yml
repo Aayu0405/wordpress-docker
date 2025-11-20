@@ -1,0 +1,30 @@
+name: Deploy WordPress to Kubernetes
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v4
+      with:
+        version: "latest"
+
+    - name: Load kubeconfig from GitHub Secret
+      run: |
+        echo "${{ secrets.KUBECONFIG_DATA }}" > kubeconfig
+        chmod 600 kubeconfig
+
+    - name: Test cluster connectivity
+      run: kubectl --kubeconfig=kubeconfig get nodes
+
+    - name: Apply WordPress Kubernetes manifests
+      run: |
+        kubectl --kubeconfig=kubeconfig apply -f kubernetes/
